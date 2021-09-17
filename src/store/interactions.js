@@ -120,6 +120,24 @@ export const withdrawSablierFromStream = (dispatch, sablier, web3, account, stre
     })
 }
 
+export const cancelSablierStream = (dispatch, sablier, streamId, account) => {
+    return new Promise((resolve, reject) => {
+        sablier.methods.cancelStream(streamId).send({from: account})
+            .on('transactionHash', (hash) => {
+                debugger;
+            })
+            .on('receipt', (data) => {
+                debugger;
+                resolve(data);
+            })
+            .on('error', (error) => {
+                console.log(error);
+                window.alert('there was an error');
+                reject(error);
+            });
+    })
+}
+
 export const sablierStreamBalances = async (dispatch, sablier, web3,streamId, sender, receiver, account) => {
     try {
         let senderBalance = await sablier.methods.balanceOf(Number(streamId), sender).call();

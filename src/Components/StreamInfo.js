@@ -13,20 +13,23 @@ import {
     TableRow,
     TableHead,
     Paper,
-    Button
+    Button,
+    Container
 } from "@material-ui/core";
 import moment from 'moment';
 import {
     useDispatch, useSelector
 } from 'react-redux';
 import {
-    withdrawSablierFromStream
+    withdrawSablierFromStream,
+    cancelSablierStream
 } from '../store/interactions';
 import {accountSelector, sablierSelector, tokenSelector, web3Selector} from "../store/selectors";
 import {makeStyles} from "@material-ui/core/styles";
 import {
     sablierStreamBalances
 } from '../store/interactions';
+import ConfirmationDialog from '../commons/ConfirmationDialog';
 
 const useStyles = makeStyles({
     table: {
@@ -44,6 +47,10 @@ function StreamInfo() {
     const token = useSelector(tokenSelector);
     const web3 = useSelector(web3Selector);
     const sablier = useSelector(sablierSelector);
+
+    const [openCancellationWarning, SetCancellationWarning] = useState(false);
+    const [isCancellingStream, SetIsCancellingStream] = useState(false);
+
     const [balanceDetails, SetBalanceDetails] = useState({
         senderBalance: 0,
         receiverBalance: 0
@@ -85,12 +92,14 @@ function StreamInfo() {
          }
         `;
 
+
+
     const onCompleted = async  (data) => {
         try {
             let balancesInfo = await sablierStreamBalances(dispatch, sablier, web3,data.stream.id,data.stream.sender, data.stream.recipient,account)
             SetBalanceDetails(balancesInfo);
         } catch (Err) {
-            debugger;
+
         }
 
     }
@@ -103,10 +112,61 @@ function StreamInfo() {
         withdrawSablierFromStream(dispatch,sablier, web3, account, id, data.stream.deposit)
     }
 
-    return <Fragment>
+    const askCancelStreamingNow = () => {
+        SetCancellationWarning(true);
+    }
+
+    const cancelStreamingNow = async  () => {
+        try {
+            SetIsCancellingStream(true);
+            await cancelSablierStream(dispatch, sablier, id, account);
+        } catch (Err) {
+        }
+        SetIsCancellingStream(false);
+        SetCancellationWarning(false);
+    }
+
+    const handleClose = () => {
+        SetCancellationWarning(false);
+    }
+
+    const cancelStreamTemplate = () => {
+        let currentTime = new Date().getTime()/1000;
+        let streamData = data && data.stream;
+        if(!streamData) {
+            return;
+        }
+
+        if(currentTime > streamData.stopTime) {
+            return <div>
+                Streaming is already completed
+            </div>;
+        }
+
+        let isStartedStreaming = currentTime > streamData.startTime;
+        let completedStreamingPercentage = Math.round(((currentTime - streamData.startTime ) * 100) / (streamData.stopTime - streamData.startTime));
+        return <div>
+            Are you sure you want to cancel streaming?
+            {isStartedStreaming? `Streaming has already started and ${completedStreamingPercentage} % is completed`: `Streaming hasn't Started Yet`}
+        </div>
+    }
+
+    return <div>
+        <ConfirmationDialog
+            handleClose={handleClose}
+            open={openCancellationWarning}
+            isInAction={isCancellingStream}
+            actionEvent={cancelStreamingNow}
+            title={'Cancel Stream ' + id}
+            content={cancelStreamTemplate()}
+        />
         {loading && <p>Loading...</p>}
         {error && <p>Error :(</p>}
         {!loading && !error && data.stream && <Grid container spacing={3}>
+            <Grid item xs={12}>
+            </Grid>
+            <Grid item xs={12}>
+            </Grid>
             <Grid item xs={2}>
             </Grid>
             <Grid item xs={10}>
@@ -126,6 +186,10 @@ function StreamInfo() {
                     <Grid item xs={12}>
                         Completion Time {moment(data.stream.stopTime*1000).format('DD MMM YYYY HH:mm')}
                     </Grid>
+                    {data.stream.cancellation && <Grid item xs={12}>
+                       This Streaming was cancelled on {moment(data.stream.cancellation.timestamp*1000).format('DD MMM YYYY HH:mm')}
+                    </Grid>}
+
                     <Grid item xs={6}>
                         <TableContainer component={Paper}>
                             <Table className={classes.table} aria-label="caption table">
@@ -139,7 +203,7 @@ function StreamInfo() {
                                         <TableRow key={withdraw.id}>
                                             <TableCell align="center">
                                                <b>{(withdraw.amount/(10 ** data.stream.token.decimals)).toFixed(4)} {data.stream.token.name} </b> Was
-                                                withdrawen on <b>{moment(withdraw.timestamp*1000).format('DD MMM YYYY HH:mm')}</b>
+                                                withdrawn on <b>{moment(withdraw.timestamp*1000).format('DD MMM YYYY HH:mm')}</b>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -147,15 +211,23 @@ function StreamInfo() {
                             </Table>
                         </TableContainer>
                     </Grid>
-                    <Grid item xs={12}>
-                       <Button onClick={withdrawAmountNow}>
+                    {!data.stream.cancellation && <Grid item xs={12}>
+                       <Button variant="contained" color="primary" onClick={withdrawAmountNow}>
                             Withdraw
                        </Button>
+                        <Button variant="contained" color="secondary" onClick={askCancelStreamingNow}>
+                            Cancel Streaming
+                        </Button>
+                    </Grid>}
+                    <Grid item xs={12}>
+                        <Button variant="contained" color="primary" href={`https://pay.sablier.finance/stream/${id}`} target={"__blank"}>
+                            Link
+                        </Button>
                     </Grid>
                 </Grid>
             </Grid>
         </Grid>}
-    </Fragment>
+    </div>
 
 }
 

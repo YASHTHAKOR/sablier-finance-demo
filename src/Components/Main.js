@@ -123,7 +123,41 @@ function Main() {
       }
         `;
 
+    const getReceivingStreamInfo = gql`
+        query GetStreams {
+         streams(where: { recipient: "${account}" }) {
+            id
+            ratePerSecond
+            deposit
+            recipient
+            sender
+            startTime
+            stopTime
+            token {
+              id
+              name
+              decimals
+            }
+            cancellation {
+             id
+             recipientBalance
+             senderBalance
+             timestamp
+             txhash
+           }
+           withdrawals {    
+             id
+             amount
+             timestamp
+             txhash
+           }
+         }
+      }
+        `;
+
     const {loading, error, data, refetch} = useQuery(getStreamInfo);
+
+    const {loading: receivingLoading, error: receivingError, data: receivingData, refetch: receivingRefetch} = useQuery(getReceivingStreamInfo);
 
     const onSubmit = async (data) => {
         // SetAlertOpen(true);
@@ -355,6 +389,16 @@ function Main() {
         <Grid container spacing={4}>
             <Grid item xs={12}>
                 {!loading && !error && <Streams data={data.streams}/>}
+            </Grid>
+        </Grid>
+        <Grid container spacing={4}>
+            <Grid item xs={12}>
+                <h4>Receiving Streams</h4>
+            </Grid>
+        </Grid>
+        <Grid container spacing={4}>
+            <Grid item xs={12}>
+                {!receivingLoading && !receivingError && <Streams data={receivingData.streams} receiver={true}/>}
             </Grid>
         </Grid>
 
