@@ -155,3 +155,7 @@ export const sablierStreamBalances = async (dispatch, sablier, web3,streamId, se
     }
 
 }
+
+export const subscribeToEvents = async (dispatch, sablier) => {
+
+}

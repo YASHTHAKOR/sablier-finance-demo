@@ -3,10 +3,17 @@ import {
     InMemoryCache,
 } from "@apollo/client";
 
-const Client = new ApolloClient({
-    uri: 'https://api.thegraph.com/subgraphs/name/sablierhq/sablier-kovan',
-    cache: new InMemoryCache()
-});
+const networkIdGraphUrl = {
+    1: 'https://api.thegraph.com/subgraphs/name/sablierhq/sablier',
+    42: 'https://api.thegraph.com/subgraphs/name/sablierhq/sablier-kovan'
+}
+
+const ClientInit = (networkId) => {
+    return (new ApolloClient({
+        uri: networkIdGraphUrl[networkId],
+        cache: new InMemoryCache()
+    }));
+}
 
 
-export default Client;
+export default ClientInit;

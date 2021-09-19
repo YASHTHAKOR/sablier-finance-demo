@@ -125,6 +125,11 @@
     }
   ],
   "networks": {
+    "1": {
+      "events": {},
+      "links": {},
+      "address": "0xCD18eAa163733Da39c232722cBC4E8940b1D8888"
+    },
     "42": {
       "events": {},
       "links": {},
