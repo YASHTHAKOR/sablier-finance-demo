@@ -16,7 +16,7 @@ import LinearProgressBar from '../commons/ProgressBar';
 const useStyles = makeStyles({
     table: {
         minWidth: 650,
-    },
+    }
 });
 
 
@@ -62,7 +62,7 @@ function Streams({
                         <TableCell align="center">Amount</TableCell>
                         <TableCell align="center">Withdrawals</TableCell>
                         <TableCell align="center">Cancelled</TableCell>
-                        <TableCell align="center">Stream</TableCell>
+                        <TableCell align="center">Actions</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -71,7 +71,7 @@ function Streams({
                             <TableCell align="center">{stream.id}</TableCell>
                             <TableCell align="center">{receiver?stream.sender:stream.recipient}</TableCell>
                             <TableCell align="center">{stream.token.name}</TableCell>
-                            <TableCell align="center"><LinearProgressBar value={getCompletionPercentage(stream)}/></TableCell>
+                            <TableCell align="center"  width={250}><LinearProgressBar value={getCompletionPercentage(stream)}/></TableCell>
                             <TableCell align="center">{stream.token.decimals}</TableCell>
                             <TableCell align="center">{(stream.deposit/(10 ** stream.token.decimals)).toFixed(4)}</TableCell>
                             <TableCell align="center">{stream.withdrawals.length}</TableCell>

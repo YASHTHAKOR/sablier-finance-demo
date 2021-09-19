@@ -12,11 +12,31 @@ export function web3AccountLoaded(account) {
     }
 }
 
+export function networkIdLoaded(networkId) {
+    return {
+        type: 'NETWORK_ID_ACCOUNT_LOADED',
+        networkId
+    }
+}
+
 export function tokenLoaded(contract) {
     return {
         type: 'TOKEN_LOADED',
         contract
     }
+}
+
+export function tokenBasicsLoaded({
+                                      tokenSymbol,
+                                      tokenName
+                                  }) {
+
+    return {
+        type: 'TOKEN_BASICS_LOADED',
+        tokenSymbol,
+        tokenName
+    }
+
 }
 
 export function etherBalanceLoaded(balance) {

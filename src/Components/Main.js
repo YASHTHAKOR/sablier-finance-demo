@@ -1,3 +1,4 @@
+import {Fragment, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {Controller, useForm} from "react-hook-form";
 import {withStyles} from '@material-ui/core/styles';
@@ -7,7 +8,9 @@ import {
     tokenSelector,
     accountSelector,
     sablierSelector,
-    tokenBalanceSelector
+    tokenBalanceSelector,
+    networkIdSelector,
+    tokenBasicsSelector
 } from '../store/selectors';
 import {
     approveToken,
@@ -24,7 +27,7 @@ import {
     DialogActions as MuiDialogActions,
     IconButton,
     CircularProgress,
-    Typography, TableContainer, Paper, Table, TableRow, TableCell
+    Typography, TableContainer, Paper, Table, TableRow, TableCell, ButtonGroup
 } from "@material-ui/core";
 import CloseIcon from '@material-ui/icons/Close';
 import {useState} from "react";
@@ -44,6 +47,35 @@ const styles = (theme) => ({
         top: theme.spacing(1),
         color: theme.palette.grey[500],
     },
+    accountTopBar: {
+        padding: '10px 0',
+        marginBottom: '20px',
+        boxShadow: '0 0 10px 5px rgba(0, 0, 0, 0.2)',
+        background: '#fff',
+        position: 'relative',
+        '& .MuiContainer-root': {
+            display: 'flex',
+            justifyContent: 'space-between',
+            flexDirection:'row'
+        }
+    },
+    formContainer: {
+        background: '#fff',
+        position: 'relative',
+        padding: '10px',
+        borderRadius: '5px',
+        boxShadow: '0px 2px 1px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%)'
+    },
+    headerDiv: {
+      width: "20%",
+        textAlign: "center"
+    },
+    formButtons: {
+        width: '100%'
+    },
+    formButton: {
+        width: '50%'
+    }
 });
 
 const DialogTitle = withStyles(styles)((props) => {
@@ -73,17 +105,24 @@ const DialogActions = withStyles((theme) => ({
     },
 }))(MuiDialogActions);
 
+const networkNames = {
+    1: 'Ethereum Mainnet',
+    42: 'Kovan Test Net',
+    0: 'Loading...'
+}
 
-function Main() {
+
+function Main({ classes }) {
 
     const account = useSelector(accountSelector);
     const token = useSelector(tokenSelector);
     const web3 = useSelector(web3Selector);
     const sablier = useSelector(sablierSelector);
     const tokenBalance = useSelector(tokenBalanceSelector);
+    const networkId = useSelector(networkIdSelector);
+    const tokenBasics = useSelector(tokenBasicsSelector);
 
     const dispatch = useDispatch();
-    const classes = withStyles(styles);
 
     const {handleSubmit, reset, control, formState: {errors}} = useForm();
     const [isCreatingPaymentStream, SetIsCreatingPaymentStream] = useState(false);
@@ -289,121 +328,157 @@ function Main() {
         SetAlertOpen(false);
     }
 
-    return <Container>
-        {account} {(tokenBalance / 10 ** 18).toFixed(4)}
-        <Grid container spacing={3}>
-            <Grid item xs={2}>
-                <Alert
-                    message={'Stream Added Successfully'}
-                    handleClose={handleAlertOpen}
-                    open={alertOpen}
-                    severity={"success"}
-                />
-            </Grid>
-            <Grid item xs={8}>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                    <Controller
-                        name={"recipientAddress"}
-                        control={control}
-                        rules={{required: true}}
-                        render={({field}) => (
-                            <TextField  {...field} label={"Recipient Address"} variant="outlined" fullWidth={true}
-                                        margin={"dense"}/>
-                        )}
+    return <Fragment>
+        <Grid container className={classes.accountTopBar}>
+            <div className={classes.headerDiv}></div>
+            <div className={classes.headerDiv}>
+                <span> Your address</span> <br/>
+                <span> <b>{account}</b></span>
+            </div>
+            <div className={classes.headerDiv}>
+                <span> Network</span> <br/>
+                <span> {networkNames[networkId]}</span>
+            </div>
+            <div className={classes.headerDiv}>
+                <span> Your Balance</span> <br/>
+                <span> <b>{(tokenBalance / 10 ** 18).toFixed(4)} {tokenBasics.name}</b></span>
+            </div>
+            <div className={classes.headerDiv}>
+
+            </div>
+            {/*<Container>*/}
+            {/*    <span>Your Address</span>*/}
+            {/*    <span>Your Balance</span>*/}
+            {/*</Container>*/}
+            {/*<Container>*/}
+            {/*    <strong>{account}</strong>*/}
+            {/*    <strong>{(tokenBalance / 10 ** 18).toFixed(4)}</strong>*/}
+            {/*</Container>*/}
+        </Grid>
+        <Container>
+            <Grid container className={classes.formContainer}>
+                <Grid item xs={12} style={{ margin: 'auto' }}>
+                    <Alert
+                        message={'Stream Added Successfully'}
+                        handleClose={handleAlertOpen}
+                        open={alertOpen}
+                        severity={"success"}
                     />
-                    {errors.recipentAddress && <span>This is required.</span>}
-                    <br/>
-                    <br/>
-                    <Controller
-                        name={"Amount"}
-                        control={control}
-                        rules={{required: true}}
-                        render={({field: {onChange, value}}) => (
-                            <TextField onChange={onChange} value={value} label={"Amount"} variant="outlined"
-                                       fullWidth={true} margin={"dense"}/>
-                        )}
-                    />
-                    <br/>
-                    <br/>
-                    <br/>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6}>
-                            <Controller
-                                name={"startTime"}
-                                control={control}
-                                rules={{required: true}}
-                                render={({field: {onChange, value}}) => (
-                                    <TextField
-                                        onChange={onChange} value={value}
-                                        id="datetime-local"
-                                        label="Start Time"
-                                        type="datetime-local"
-                                        fullWidth={true} margin={"dense"}
-                                        InputLabelProps={{
-                                            shrink: true,
-                                        }}
-                                    />
-                                )}
-                            />
+                </Grid>
+                <Grid item xs={12}/>
+                <Grid item xs={12}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
+                        <Grid container>
+                            <Grid item xs={12} md={6}>
+                                <Controller
+                                    name={"recipientAddress"}
+                                    control={control}
+                                    rules={{required: true}}
+                                    render={({field}) => (
+                                        <TextField  {...field} label={"Recipient Address"} variant="outlined" fullWidth
+                                                    margin={"dense"}/>
+                                    )}
+                                />
+                                {errors.recipentAddress && <span>This is required.</span>}
+                                <br/>
+                                <Controller
+                                    name={"startTime"}
+                                    control={control}
+                                    rules={{required: true}}
+                                    render={({field: {onChange, value}}) => (
+                                        <TextField
+                                            onChange={onChange} value={value}
+                                            id="datetime-local"
+                                            label="Start Time"
+                                            type="datetime-local"
+                                            fullWidth
+                                            variant="outlined"
+                                            margin={"dense"}
+                                            InputLabelProps={{
+                                                shrink: true,
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Controller
+                                    name={"Amount"}
+                                    control={control}
+                                    rules={{required: true}}
+                                    render={({field: {onChange, value}}) => (
+                                        <TextField onChange={onChange} value={value} label={"Amount"} variant="outlined"
+                                                   fullWidth margin={"dense"}/>
+                                    )}
+                                />
+                                <br/>
+                                <Controller
+                                    name={"endTime"}
+                                    control={control}
+                                    rules={{required: true}}
+                                    render={({field: {onChange, value}}) => (
+                                        <TextField
+                                            onChange={onChange} value={value}
+                                            id="datetime-local"
+                                            label="End Time"
+                                            type="datetime-local"
+                                            fullWidth
+                                            variant="outlined"
+                                            margin={"dense"}
+                                            InputLabelProps={{
+                                                shrink: true,
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Grid>
+                            <Grid item xs={12} style={{ marginTop: '10px' }}>
+                                <ButtonGroup variant="contained" className={classes.formButtons}>
+                                    <Button
+                                        type="submit"
+                                        className={classes.formButton}
+                                    >Submit</Button>
+                                    <Button
+                                        className={classes.formButton}
+                                        onClick={() => reset({
+                                            recipientAddress: '',
+                                            Amount: '',
+                                            startTime: new Date(),
+                                            endTime: new Date()
+                                        })}
+                                        variant={"outlined"}
+                                    >Reset</Button>
+                                </ButtonGroup>
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <Controller
-                                name={"endTime"}
-                                control={control}
-                                rules={{required: true}}
-                                render={({field: {onChange, value}}) => (
-                                    <TextField
-                                        onChange={onChange} value={value}
-                                        id="datetime-local"
-                                        label="End Time"
-                                        type="datetime-local"
-                                        fullWidth={true} margin={"dense"}
-                                        InputLabelProps={{
-                                            shrink: true,
-                                        }}
-                                    />
-                                )}
-                            />
-                        </Grid>
-                    </Grid>
-                    <br/>
 
-                    <Button type="submit">Submit</Button>
-
-                    <Button onClick={() => reset({
-                        recipientAddress: '',
-                        Amount: '',
-                        startTime: new Date(),
-                        endTime: new Date()
-                    })} variant={"outlined"}>Reset</Button>
-
-                    {DialogRender()}
-                </form>
+                        {DialogRender()}
+                    </form>
+                </Grid>
             </Grid>
-        </Grid>
-        <Grid container spacing={4}>
-            <Grid item xs={12}>
-                <h4>Created Streams</h4>
+            <Grid container spacing={4}>
+                <Grid item xs={12}>
+                    <h4>Created Streams</h4>
+                </Grid>
             </Grid>
-        </Grid>
-        <Grid container spacing={4}>
-            <Grid item xs={12}>
-                {!loading && !error && <Streams data={data.streams}/>}
+            <Grid container spacing={4}>
+                <Grid item xs={12}>
+                    {!loading && !error && <Streams data={data.streams}/>}
+                </Grid>
             </Grid>
-        </Grid>
-        <Grid container spacing={4}>
-            <Grid item xs={12}>
-                <h4>Receiving Streams</h4>
+            <Grid container spacing={4}>
+                <Grid item xs={12}>
+                    <h4>Receiving Streams</h4>
+                </Grid>
             </Grid>
-        </Grid>
-        <Grid container spacing={4}>
-            <Grid item xs={12}>
-                {!receivingLoading && !receivingError && <Streams data={receivingData.streams} receiver={true}/>}
+            <Grid container spacing={4}>
+                <Grid item xs={12}>
+                    {!receivingLoading && !receivingError && <Streams data={receivingData.streams} receiver={true}/>}
+                </Grid>
             </Grid>
-        </Grid>
-
-    </Container>
+        </Container>
+    </Fragment>
 
 }
 
-export default Main;
+export default withStyles(styles)(Main);

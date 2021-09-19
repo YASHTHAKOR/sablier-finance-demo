@@ -4,9 +4,11 @@ import Sablier from '../abis/Sablier.json';
 import {
     web3Loaded,
     web3AccountLoaded,
+    networkIdLoaded,
     tokenLoaded,
     etherBalanceLoaded,
     tokenBalanceLoaded,
+    tokenBasicsLoaded,
     sablierLoaded
 } from './actions';
 
@@ -21,6 +23,8 @@ export const loadAccount = async (web3, dispatch) => {
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
     dispatch(web3AccountLoaded(account));
+    const networkId = await web3.eth.net.getId();
+    dispatch(networkIdLoaded(networkId));
     return account;
 }
 
@@ -57,6 +61,13 @@ export const loadBalances = async (dispatch, web3, token, account) => {
 
     const tokenBalance = await token.methods.balanceOf(account).call();
     dispatch(tokenBalanceLoaded(tokenBalance));
+
+    const tokenSymbol = await token.methods.symbol().call();
+    const tokenName = await token.methods.name().call();
+    dispatch(tokenBasicsLoaded({
+        tokenSymbol,
+        tokenName
+    }));
 
 }
 
@@ -157,5 +168,19 @@ export const sablierStreamBalances = async (dispatch, sablier, web3,streamId, se
 }
 
 export const subscribeToEvents = async (dispatch, sablier) => {
+
+
+    sablier.events.createStream({}, () => {
+
+    });
+
+    sablier.events.withdrawFromStream({}, () => {
+
+    });
+
+    sablier.events.cancelStream({}, () => {
+
+    });
+
 
 }

@@ -12,6 +12,11 @@ function web3(state = {}, action) {
                 ...state,
                 account: action.account
             }
+        case 'NETWORK_ID_ACCOUNT_LOADED':
+            return {
+                ...state,
+                networkId: action.networkId
+            }
         case 'ETHER_BALANCE_LOADED':
             return {...state, balance: action.balance}
         default:
@@ -26,6 +31,12 @@ function token(state = [], action) {
                 ...state,
                 contract: action.contract,
                 loaded: true
+            }
+        case 'TOKEN_BASICS_LOADED':
+            return {
+                ...state,
+                symbol:  action.tokenSymbol,
+                name: action.tokenName
             }
         case 'TOKEN_BALANCE_LOADED':
             return {...state, balance: action.balance}

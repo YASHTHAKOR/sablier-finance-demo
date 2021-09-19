@@ -1,0 +1,360 @@
+Index: src/Components/StreamInfo.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/Components/StreamInfo.js b/src/Components/StreamInfo.js
+--- a/src/Components/StreamInfo.js	(revision dd61e68785c413da82892c9ac05d78f9b18f705a)
++++ b/src/Components/StreamInfo.js	(date 1632047299307)
+@@ -1,5 +1,5 @@
+ import {Fragment, useState} from "react";
+-import {useParams} from 'react-router-dom';
++import {Link, useParams} from 'react-router-dom';
+ import {
+     gql,
+     useQuery
+@@ -14,7 +14,7 @@
+     TableHead,
+     Paper,
+     Button,
+-    Container
++    Container, ButtonGroup
+ } from "@material-ui/core";
+ import moment from 'moment';
+ import {
+@@ -30,11 +30,21 @@
+     sablierStreamBalances
+ } from '../store/interactions';
+ import ConfirmationDialog from '../commons/ConfirmationDialog';
++import {ChevronLeft} from "@material-ui/icons";
+ 
+ const useStyles = makeStyles({
+     table: {
+         minWidth: 650,
+     },
++    formButtons: {
++        width: '100%'
++    },
++    formButton: {
++        width: '50%'
++    },
++    gridMargin: {
++        marginBottom: '20px'
++    }
+ });
+ 
+ function StreamInfo() {
+@@ -60,43 +70,42 @@
+ 
+     const getStreamInfo = gql`
+         query GetStreamInfo {
+-                stream(id: ${id}) {
+-                    deposit
+-                    id
+-                    ratePerSecond
+-                    recipient
+-                    sender
+-                    recipient
+-                    startTime
+-                    stopTime
+-                    cancellation {
+-                      id
+-                      recipientBalance
+-                      senderBalance
+-                      timestamp
+-                      txhash
+-                    }
+-                    token {
+-                      id
+-                      name
+-                      decimals
+-                    }
+-                    withdrawals {    
+-                      id
+-                      amount
+-                      timestamp
+-                      txhash
+-                    }
+-                }
+-                
+-         }
+-        `;
++            stream(id: ${id}) {
++                deposit
++                id
++                ratePerSecond
++                recipient
++                sender
++                recipient
++                startTime
++                stopTime
++                cancellation {
++                    id
++                    recipientBalance
++                    senderBalance
++                    timestamp
++                    txhash
++                }
++                token {
++                    id
++                    name
++                    decimals
++                }
++                withdrawals {
++                    id
++                    amount
++                    timestamp
++                    txhash
++                }
++            }
++
++        }
++    `;
+ 
+ 
+-
+-    const onCompleted = async  (data) => {
++    const onCompleted = async (data) => {
+         try {
+-            let balancesInfo = await sablierStreamBalances(dispatch, sablier, web3,data.stream.id,data.stream.sender, data.stream.recipient,account)
++            let balancesInfo = await sablierStreamBalances(dispatch, sablier, web3, data.stream.id, data.stream.sender, data.stream.recipient, account)
+             SetBalanceDetails(balancesInfo);
+         } catch (Err) {
+ 
+@@ -104,19 +113,19 @@
+ 
+     }
+ 
+-    const { loading, error, data } = useQuery(getStreamInfo, {
++    const {loading, error, data} = useQuery(getStreamInfo, {
+         onCompleted
+     });
+ 
+     const withdrawAmountNow = () => {
+-        withdrawSablierFromStream(dispatch,sablier, web3, account, id, data.stream.deposit)
++        withdrawSablierFromStream(dispatch, sablier, web3, account, id, data.stream.deposit)
+     }
+ 
+     const askCancelStreamingNow = () => {
+         SetCancellationWarning(true);
+     }
+ 
+-    const cancelStreamingNow = async  () => {
++    const cancelStreamingNow = async () => {
+         try {
+             SetIsCancellingStream(true);
+             await cancelSablierStream(dispatch, sablier, id, account);
+@@ -131,27 +140,27 @@
+     }
+ 
+     const cancelStreamTemplate = () => {
+-        let currentTime = new Date().getTime()/1000;
++        let currentTime = new Date().getTime() / 1000;
+         let streamData = data && data.stream;
+-        if(!streamData) {
++        if (!streamData) {
+             return;
+         }
+ 
+-        if(currentTime > streamData.stopTime) {
++        if (currentTime > streamData.stopTime) {
+             return <div>
+                 Streaming is already completed
+             </div>;
+         }
+ 
+         let isStartedStreaming = currentTime > streamData.startTime;
+-        let completedStreamingPercentage = Math.round(((currentTime - streamData.startTime ) * 100) / (streamData.stopTime - streamData.startTime));
++        let completedStreamingPercentage = Math.round(((currentTime - streamData.startTime) * 100) / (streamData.stopTime - streamData.startTime));
+         return <div>
+             Are you sure you want to cancel streaming?
+-            {isStartedStreaming? `Streaming has already started and ${completedStreamingPercentage} % is completed`: `Streaming hasn't Started Yet`}
++            {isStartedStreaming ? `Streaming has already started and ${completedStreamingPercentage} % is completed` : `Streaming hasn't Started Yet`}
+         </div>
+     }
+ 
+-    return <div>
++    return <Fragment>
+         <ConfirmationDialog
+             handleClose={handleClose}
+             open={openCancellationWarning}
+@@ -160,74 +169,115 @@
+             title={'Cancel Stream ' + id}
+             content={cancelStreamTemplate()}
+         />
+-        {loading && <p>Loading...</p>}
+-        {error && <p>Error :(</p>}
+-        {!loading && !error && data.stream && <Grid container spacing={3}>
+-            <Grid item xs={12}>
++        <Grid container style={{justifyContent: 'center', marginTop: '30px'}}>
++            <Grid item xs={11} sm={9} md={7} lg={5} className={classes.gridMargin}>
++                <Button
++                    component={Link}
++                    to="/"
++                    variant="outlined"
++                >
++                    <ChevronLeft/>
++                    <strong>Back</strong>
++                </Button>
++                <br/>
++                {loading && <p>Loading...</p>}
++                {error && <p>Error :(</p>}
+             </Grid>
+-            <Grid item xs={12}>
+-            </Grid>
+-            <Grid item xs={2}>
+-            </Grid>
+-            <Grid item xs={10}>
+-                <Grid container>
+-                    <Grid item xs={12}>
+-                        Stream Id {data.stream.id}
+-                    </Grid>
+-                    <Grid item xs={12}>
+-                        Receiver {data.stream.recipient}
+-                    </Grid>
+-                    <Grid item xs={12}>
+-                        Initial Amount {(data.stream.deposit/(10 ** data.stream.token.decimals)).toFixed(4)}
+-                    </Grid>
+-                    <Grid item xs={12}>
+-                        Start  Time {moment(data.stream.startTime*1000).format('DD MMM YYYY HH:mm')}
+-                    </Grid>
+-                    <Grid item xs={12}>
+-                        Completion Time {moment(data.stream.stopTime*1000).format('DD MMM YYYY HH:mm')}
+-                    </Grid>
+-                    {data.stream.cancellation && <Grid item xs={12}>
+-                       This Streaming was cancelled on {moment(data.stream.cancellation.timestamp*1000).format('DD MMM YYYY HH:mm')}
+-                    </Grid>}
+-
+-                    <Grid item xs={6}>
+-                        <TableContainer component={Paper}>
+-                            <Table className={classes.table} aria-label="caption table">
+-                                <TableHead>
+-                                    <TableRow>
+-                                        <TableCell align="center">With Draw History</TableCell>
+-                                    </TableRow>
+-                                </TableHead>
+-                                <TableBody>
+-                                    {data.stream.withdrawals.map((withdraw) => (
+-                                        <TableRow key={withdraw.id}>
+-                                            <TableCell align="center">
+-                                               <b>{(withdraw.amount/(10 ** data.stream.token.decimals)).toFixed(4)} {data.stream.token.name} </b> Was
+-                                                withdrawn on <b>{moment(withdraw.timestamp*1000).format('DD MMM YYYY HH:mm')}</b>
+-                                            </TableCell>
+-                                        </TableRow>
+-                                    ))}
+-                                </TableBody>
+-                            </Table>
+-                        </TableContainer>
+-                    </Grid>
+-                    {!data.stream.cancellation && <Grid item xs={12}>
+-                       <Button variant="contained" color="primary" onClick={withdrawAmountNow}>
++            <Grid item xs={12}/>
++            {!loading && !error && data.stream && <Fragment>
++                <Grid item xs={11} sm={9} md={7} lg={5} className={classes.gridMargin}>
++                    <TableContainer component={Paper}>
++                        <Table className={classes.table} aria-label="caption table">
++                            <TableHead>
++                                <TableRow>
++                                    <TableCell colSpan={2} align="center" style={{fontSize: '20px'}}>
++                                        <strong>Stream Details</strong>
++                                    </TableCell>
++                                </TableRow>
++                            </TableHead>
++                            <TableBody>
++                                <TableRow key="stream_id">
++                                    <TableCell align="left">Stream Id</TableCell>
++                                    <TableCell align="right">{data.stream.id}</TableCell>
++                                </TableRow>
++                                <TableRow key="stream_receiver">
++                                    <TableCell align="left">Receiver</TableCell>
++                                    <TableCell align="right">{data.stream.recipient}</TableCell>
++                                </TableRow>
++                                <TableRow key="stream_initial_amount">
++                                    <TableCell align="left">Initial Amount</TableCell>
++                                    <TableCell
++                                        align="right">{(data.stream.deposit / (10 ** data.stream.token.decimals)).toFixed(4)}</TableCell>
++                                </TableRow>
++                                <TableRow key="stream_start_time">
++                                    <TableCell align="left">Start Time</TableCell>
++                                    <TableCell
++                                        align="right">{moment(data.stream.starttime * 1000).format('dd mmm yyyy hh:mm')}</TableCell>
++                                </TableRow>
++                                <TableRow key="stream_stop_time">
++                                    <TableCell align="left">Completion Time</TableCell>
++                                    <TableCell
++                                        align="right">{moment(data.stream.stopTime * 1000).format('DD MMM YYYY HH:mm')}</TableCell>
++                                </TableRow>
++                                {data.stream.cancellation && <TableRow key="stream_cancellation">
++                                    <TableCell align="center" colSpan={2}>
++                                        This Streaming was cancelled
++                                        on {moment(data.stream.cancellation.timestamp * 1000).format('DD MMM YYYY HH:mm')}
++                                    </TableCell>
++                                </TableRow>}
++                            </TableBody>
++                        </Table>
++                    </TableContainer>
++                </Grid>
++                <Grid item xs={12}/>
++                <Grid item xs={11} sm={9} md={7} lg={5} className={classes.gridMargin}>
++                    <TableContainer component={Paper}>
++                        <Table className={classes.table} aria-label="caption table">
++                            <TableHead>
++                                <TableRow>
++                                    <TableCell align="center" style={{fontSize: '20px'}}><strong>Withdrawal
++                                        History</strong></TableCell>
++                                </TableRow>
++                            </TableHead>
++                            <TableBody>
++                                {data.stream.withdrawals.map((withdraw) => (
++                                    <TableRow key={withdraw.id}>
++                                        <TableCell align="left">
++                                            <b>{(withdraw.amount / (10 ** data.stream.token.decimals)).toFixed(4)} {data.stream.token.name} </b> Was
++                                            withdrawn
++                                            on <b>{moment(withdraw.timestamp * 1000).format('DD MMM YYYY HH:mm')}</b>
++                                        </TableCell>
++                                    </TableRow>
++                                ))}
++                            </TableBody>
++                        </Table>
++                    </TableContainer>
++                </Grid>
++                <Grid item xs={12}/>
++                {!data.stream.cancellation && <Grid item xs={11} sm={9} md={7} lg={5} className={classes.gridMargin}>
++                    <ButtonGroup className={classes.formButtons}>
++                        <Button
++                            className={classes.formButton}
++                            variant="contained"
++                            color="primary"
++                            onClick={withdrawAmountNow}
++                        >
+                             Withdraw
+-                       </Button>
+-                        <Button variant="contained" color="secondary" onClick={askCancelStreamingNow}>
++                        </Button>
++                        <Button
++                            className={classes.formButton}
++                            variant="contained"
++                            color="secondary"
++                            onClick={askCancelStreamingNow}
++                        >
+                             Cancel Streaming
+                         </Button>
+-                    </Grid>}
+-                    <Grid item xs={12}>
+-                        <Button variant="contained" color="primary" href={`https://pay.sablier.finance/stream/${id}`} target={"__blank"}>
+-                            Link
+-                        </Button>
+-                    </Grid>
+-                </Grid>
+-            </Grid>
+-        </Grid>}
+-    </div>
++                    </ButtonGroup>
++                </Grid>}
++                <Grid item xs={12}/>
++            </Fragment>}
++        </Grid>
++    </Fragment>
+ 
+ }
+ 

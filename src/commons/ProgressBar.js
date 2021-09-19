@@ -6,6 +6,7 @@ import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgr
 const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
     height: 10,
     borderRadius: 5,
+    width: '55%',
     [`&.${linearProgressClasses.colorPrimary}`]: {
         backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 200 : 800],
     },
@@ -15,12 +16,17 @@ const BorderLinearProgress = styled(LinearProgress)(({ theme }) => ({
     },
 }));
 
+const BoxProgress = styled(Box)((theme) => ({
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+}))
 
 function LinearProgressBar ({value}) {
-    return  <Box sx={{ flexGrow: 1 }}>
-        <br />
-        <BorderLinearProgress variant="determinate" value={value} /> {value} %
-    </Box>
+    return  <BoxProgress sx={{ flexGrow: 2 }}>
+        <BorderLinearProgress variant="determinate" value={value} />
+        <span style={{float: 'left'}}>{value} %</span>
+    </BoxProgress>
 }
 
 export default LinearProgressBar;
