@@ -14,7 +14,7 @@ import {
     TableHead,
     Paper,
     Button,
-    Container, ButtonGroup
+    CircularProgress, ButtonGroup
 } from "@material-ui/core";
 import moment from 'moment';
 import {
@@ -54,12 +54,12 @@ function StreamInfo() {
     const dispatch = useDispatch();
 
     const account = useSelector(accountSelector);
-    const token = useSelector(tokenSelector);
     const web3 = useSelector(web3Selector);
     const sablier = useSelector(sablierSelector);
 
     const [openCancellationWarning, SetCancellationWarning] = useState(false);
     const [isCancellingStream, SetIsCancellingStream] = useState(false);
+    const [isWithdrawing, SetIsWithdrawing] = useState(false);
 
     const [balanceDetails, SetBalanceDetails] = useState({
         senderBalance: 0,
@@ -113,12 +113,24 @@ function StreamInfo() {
 
     }
 
-    const {loading, error, data} = useQuery(getStreamInfo, {
+    const {loading, error, data, refetch} = useQuery(getStreamInfo, {
         onCompleted
     });
 
-    const withdrawAmountNow = () => {
-        withdrawSablierFromStream(dispatch, sablier, web3, account, id, data.stream.deposit)
+    const withdrawAmountNow = async () => {
+        SetIsWithdrawing(true);
+        try {
+            // data.stream.deposit;
+            await withdrawSablierFromStream(dispatch, sablier, web3, account, id, balanceDetails.receiverBalance);
+            setTimeout(() => {
+                refetch();
+            }, 5000)
+            SetIsWithdrawing(false);
+        } catch (Err) {
+            console.log(Err);
+            SetIsWithdrawing(false);
+
+        }
     }
 
     const askCancelStreamingNow = () => {
@@ -260,9 +272,11 @@ function StreamInfo() {
                             className={classes.formButton}
                             variant="contained"
                             color="primary"
+                            disabled={balanceDetails.receiverBalance === 0 || isWithdrawing}
                             onClick={withdrawAmountNow}
                         >
-                            Withdraw
+                            {isWithdrawing? <CircularProgress/>: 'Withdraw'}
+
                         </Button>
                         <Button
                             className={classes.formButton}

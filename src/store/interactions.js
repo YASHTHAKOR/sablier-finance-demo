@@ -117,10 +117,8 @@ export const withdrawSablierFromStream = (dispatch, sablier, web3, account, stre
     return new Promise((resolve, reject) => {
         sablier.methods.withdrawFromStream(streamId, amount).send({from: account})
             .on('transactionHash', (hash) => {
-                debugger;
             })
             .on('receipt', (data) => {
-                debugger;
                 resolve(data);
             })
             .on('error', (error) => {

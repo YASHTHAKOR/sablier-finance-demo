@@ -298,7 +298,7 @@ function Main({ classes }) {
                             </TableRow>
                             <TableRow>
                                 <TableCell align="center">Subtracted Amount</TableCell>
-                                <TableCell align="center">{finalStreamingData.remainder}</TableCell>
+                                <TableCell align="center">{finalStreamingData.remainder} WEI</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell align="center">Start Time</TableCell>
