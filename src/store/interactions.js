@@ -71,11 +71,21 @@ export const loadBalances = async (dispatch, web3, token, account) => {
 
 }
 
+export const getAllowance = async (web3, token, sablier, account) => {
+    let amount = await token.methods.allowance(account,sablier.options.address)
+        .call({from: account});
+
+    return amount;
+}
 
 export const approveToken = (dispatch, sablier, web3, token, amount, account) => {
-    amount = web3.utils.toWei(amount, 'ether');
-    return new Promise((resolve, reject) => {
-        token.methods.approve(sablier.options.address, amount).send({from: account})
+    return new Promise(async (resolve, reject) => {
+        let allowedAmount = await getAllowance(web3, token, sablier, account);
+
+        if(allowedAmount > amount) {
+            return resolve();
+        }
+        token.methods.approve(sablier.options.address, web3.utils.toWei('9999999', 'ether')).send({from: account})
             .on('transactionHash', (hash) => {
                 resolve(hash);
             })
