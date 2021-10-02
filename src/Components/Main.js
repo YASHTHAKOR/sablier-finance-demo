@@ -203,8 +203,8 @@ function Main({ classes }) {
 
         try {
             let sablierData = {
-                startTime: new Date(data.startTime).getTime() / 1000,
-                endTime: new Date(data.endTime).getTime() / 1000,
+                startTime: Math.round(new Date(data.startTime).getTime() / 1000),
+                endTime:  Math.round(new Date(data.endTime).getTime() / 1000),
                 amount: data.Amount * (10 ** 18),
                 recipientAddress: data.recipientAddress
             }
@@ -213,20 +213,22 @@ function Main({ classes }) {
 
             let amountBN = new BN(sablierData.amount.toLocaleString().replace(/,/g, ''));
 
-            let remainder = new BN((sablierData.amount) % (sablierData.endTime - sablierData.startTime).toString());
+            let timeDiff = new BN(sablierData.endTime - sablierData.startTime);
 
-            let finalDepositAmount = amountBN.sub(remainder).toString();
+            let remainder = amountBN.mod(timeDiff);
 
-            let finalAmountString = new BN(finalDepositAmount / (10 ** 18)).toString();
+            let finalDepositAmount = amountBN.sub(remainder);
+
+            let finalAmountString = finalDepositAmount.div(new BN((10 ** 18).toString()));
 
             let finalData = {
                 recipient: sablierData.recipientAddress,
-                deposit: finalDepositAmount,
+                deposit: finalDepositAmount.toString(),
                 startTime: sablierData.startTime,
                 stopTime: sablierData.endTime,
                 remainder: remainder.toString(),
-                finalAmountString,
-                finalDepositAmount
+                finalAmountString: finalAmountString.toString(),
+                finalDepositAmount: finalDepositAmount.toString()
             }
 
             SetFinalStreamingData(finalData);

@@ -82,7 +82,7 @@ export const approveToken = (dispatch, sablier, web3, token, amount, account) =>
     return new Promise(async (resolve, reject) => {
         let allowedAmount = await getAllowance(web3, token, sablier, account);
 
-        if(allowedAmount > amount) {
+        if(web3.utils.toBN(allowedAmount).gt(web3.utils.toBN(amount))) {
             return resolve();
         }
         token.methods.approve(sablier.options.address, web3.utils.toWei('9999999', 'ether')).send({from: account})
